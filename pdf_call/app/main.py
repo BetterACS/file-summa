@@ -23,11 +23,12 @@ app.add_middleware(
 )
 
 @app.post("/summary")
-async def summary_endpoint(file: UploadFile = File(...)):  # Expect a file, not a string
-    content = await file.read()  # Read file content as bytes
+async def summary_endpoint(pdf_file: UploadFile = File(...)):  # Expect a file, not a string
+    print(pdf_file)
+    content = await pdf_file.read()  # Read file content as bytes
 
-    if file.content_type != "application/pdf":
-        print(file.content_type)
+    if pdf_file.content_type != "application/pdf":
+        print(pdf_file.content_type)
         return {"message": "Invalid file type. Please upload a PDF."}
     
     try:
@@ -38,7 +39,7 @@ async def summary_endpoint(file: UploadFile = File(...)):  # Expect a file, not 
             text += page.get_text("text")
         pdf.close()
 
-        prompt = """Summarize the following text: {}""".format(text)
+        prompt = """Summarize the following text (use language same as that pdf file): {}""".format(text)
         completion = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -50,8 +51,5 @@ async def summary_endpoint(file: UploadFile = File(...)):  # Expect a file, not 
         print(e)
         return {"message": "An error occurred while reading the PDF file."}
 
-    return summarized_results
-
-if __name__ == "__main__":
-    uvicorn.run(app, host="localhost", port=8080)
+    return {"summary": summarized_results, "file_name": pdf_file.filename}
 

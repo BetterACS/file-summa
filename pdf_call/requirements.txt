@@ -1,4 +1,5 @@
-fastapi
+fastapi[standard]
 openai
 uvicorn
 python-dotenv
+pymupdf

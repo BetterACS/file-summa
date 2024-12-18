@@ -1,0 +1,42 @@
+version: '3.1'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      DB_HOST: 'postgres_container'
+      DB_USER: 'postgres'
+      DB_PASSWORD: 'admin'
+      DB_DATABASE: 'network'
+      DB_PORT: 5432
+    ports:
+      - "4000:4000"
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15
+    container_name: postgres_container
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: network
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data:/docker-entrypoint-initdb.d
+
+  python_app:
+    dns:
+    - 8.8.8.8
+    build:
+      context: ./pdf_call
+      dockerfile: Dockerfile
+    environment:
+      OPENAI_API_KEY: 'your_openai_api_key'
+    volumes:
+      - ./pdf_call/app:/app
+    ports:
+      - "8000:8000"
